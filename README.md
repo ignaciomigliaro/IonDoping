@@ -1,4 +1,7 @@
 # Ion Doping
+
+Requirements: ASE > 2.022
+
 This repo serves as a way to randomly dope Crystal Structures with anions and balance charge with removal of cations. This is to account that the functions provided by ASE or Pymatgen are desgined for doping cations. This is designed to run for VASP, and for now the cation balance charge assumes the ion is of charge -1. 
 
 usage: doping.py [-h] [--target_atom TARGET_ATOM] [--anion ANION] [--cation CATION] [--fraction FRACTION] [--count COUNT] input_files output_dir
