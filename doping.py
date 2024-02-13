@@ -3,6 +3,7 @@ from ase.io import read,write
 import random
 import os
 import shutil
+from ase.io import espresso 
 
 def parse_args(): 
     parser = argparse.ArgumentParser(
@@ -35,6 +36,11 @@ def parse_args():
     parser.add_argument(
         '--count',
         help="Number of doped structures you want generated"
+    )
+    parser.add_argument(
+        '--dft',
+        choices=['QE','VASP'],
+        help='Choose  with what software you want to optimize cell options are QE or VASP.'
     )
     return parser.parse_args()
 
@@ -84,17 +90,73 @@ def balance_charge(structure, cation_type, num_cations_removed):
 
     return removed_cations
 
+def write_qe_file(output_directory,crystal_structure):
+    input_data = {
+        "calculation": "vc-relax",
+        "prefix": "qe_input",
+        "pseudo_dir": "~/QE/pseudo",
+        "outdir": "./out/",
+        "verbosity": "high",
+        "etot_conv_thr": 1.0e-03,
+        "forc_conv_thr": 5.0e-02,
+        "tstress": True,
+        "degauss": 1.4699723600e-02,
+        "ecutrho": 600,
+        "ecutwfc": 90,
+        "vdw_corr": "mbd",
+        "occupations": "smearing",
+        "smearing": 'cold',
+        "electron_maxstep": 80,
+        "mixing_beta": 4.0e-01,
+        }
+    pseudos ={
+        "Cl": "Cl.upf",
+        "O": "0.upf",
+        "F": "F.upf",
+        "I": "I.upf",
+        "Br": "Br.upf",
+        "La": "La.upf",
+        "I": "I.upf",
+        "Li": "Li.upf",
+        "Zr": "Zr.upf",
+        }
+
+    write(
+    format='espresso-in',
+    filename=output_directory,
+    images=crystal_structure, 
+    input_data=input_data,
+    pseudopotentials=pseudos,
+    )
+
+def qe_file_dir_iterate(input_directory,output_directory,anion_target,cation_type,anion_replace,num_structures=10,doping_fraction=.5):
+    poscar_file = input_directory + '/POSCAR'
+    initial_structure = read(poscar_file)
+    for count in range(1, num_structures + 1):
+        structure_directory = os.path.join(output_directory, f'dope{count}')
+        os.makedirs(structure_directory, exist_ok=True)
+        structure = initial_structure.copy()
+        num_replaced_anions = dope_fraction(structure, anion_target, anion_replace, doping_fraction)
+        print(f"Structure {count}: Replaced {num_replaced_anions} O atoms with F atoms.")
+        num_removed_cations = balance_charge(structure, cation_type, num_replaced_anions)
+        print(f"Structure {count}: Removed {num_removed_cations} Li atoms to balance the charge.")
+        output_poscar = os.path.join(structure_directory, 'pwscf.in')
+        write_qe_file(output_poscar,structure)
+
+
+
+
 def file_dir_iterate(input_directory,output_directory,anion_target,cation_type,anion_replace,num_structures=10,doping_fraction=.5):
     poscar_file = input_directory + '/POSCAR'
     initial_structure = read(poscar_file)
     common_files = ['KPOINTS', 'POTCAR', 'INCAR']
     os.makedirs(output_dir, exist_ok=True)
 
+
     common_files = ['KPOINTS', 'POTCAR', 'INCAR']
     for count in range(1, num_structures + 1):
         structure_directory = os.path.join(output_directory, f'dope{count}')
         os.makedirs(structure_directory, exist_ok=True)
-
         for common_file in common_files:
             source_path = os.path.join(input_directory, common_file)
             destination_path = os.path.join(structure_directory, common_file)
@@ -105,20 +167,20 @@ def file_dir_iterate(input_directory,output_directory,anion_target,cation_type,a
         print(f"Structure {count}: Replaced {num_replaced_anions} O atoms with F atoms.")
         num_removed_cations = balance_charge(structure, cation_type, num_replaced_anions)
         print(f"Structure {count}: Removed {num_removed_cations} Li atoms to balance the charge.")
-
         output_poscar = os.path.join(structure_directory, 'POSCAR')
         write(output_poscar, structure)
 
 
 
 args = parse_args()
-input_dir = args.input_files
-output_dir = args.output_dir
 target_anion = str(args.target_atom )
 anion_replace = str(args.anion)
 cation = str(args.cation)
 fraction = float(args.fraction)
 num_structures = int(args.count)
 fraction = float(args.fraction)
-
-file_dir_iterate(input_dir,output_dir,target_anion,cation,anion_replace,num_structures,fraction)
+dft = str(args.dft)
+if dft == 'VASP':
+    file_dir_iterate(args.input_files,args.output_dir,target_anion,cation,anion_replace,num_structures,fraction)
+else: 
+    qe_file_dir_iterate(args.input_files,args.output_dir,target_anion,cation,anion_replace,num_structures,fraction)
