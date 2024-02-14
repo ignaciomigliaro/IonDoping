@@ -22,3 +22,7 @@ options:
   --cation CATION       Cation to balance the electrolyte charge
   --fraction FRACTION   Fraction of target atoms being replaced
   --count COUNT         Number of doped structures you want generated
+
+
+Example: 
+ python doping.py input_files/ --fraction 0.05 --count 10 --target_atom O --anion F --cation Li --count 10 --dft QE ./test 
