@@ -150,7 +150,7 @@ def file_dir_iterate(input_directory,output_directory,anion_target,cation_type,a
     poscar_file = input_directory + '/POSCAR'
     initial_structure = read(poscar_file)
     common_files = ['KPOINTS', 'POTCAR', 'INCAR']
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_directory, exist_ok=True)
 
 
     common_files = ['KPOINTS', 'POTCAR', 'INCAR']
