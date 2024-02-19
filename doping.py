@@ -111,7 +111,7 @@ def write_qe_file(output_directory,crystal_structure):
         }
     pseudos ={
         "Cl": "Cl.upf",
-        "O": "0.upf",
+        "O": "O.upf",
         "F": "F.upf",
         "I": "I.upf",
         "Br": "Br.upf",
@@ -127,6 +127,7 @@ def write_qe_file(output_directory,crystal_structure):
     images=crystal_structure, 
     input_data=input_data,
     pseudopotentials=pseudos,
+    kspacing=0.05
     )
 
 def qe_file_dir_iterate(input_directory,output_directory,anion_target,cation_type,anion_replace,num_structures=10,doping_fraction=.5):
