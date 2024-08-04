@@ -169,7 +169,7 @@ def file_dir_iterate(input_directory,output_directory,anion_target,cation_type,a
         num_removed_cations = balance_charge(structure, cation_type, num_replaced_anions)
         print(f"Structure {count}: Removed {num_removed_cations} Li atoms to balance the charge.")
         output_poscar = os.path.join(structure_directory, 'POSCAR')
-        write(output_poscar, structure)
+        write(output_poscar, structure,sort=True)
 
 
 
